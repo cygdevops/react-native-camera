@@ -1103,73 +1103,74 @@ BOOL _sessionInterrupted = NO;
 
         if (options[@"fps"]) {
             /****NOTE*****/
-            //Even though we are sending fps value but we are always chooseing the best format and quality
-            //If fps is required uncomment the below code
+            //The code first validates the passed fps options and whether it is possible to use with desired quality.
+            //If not, the code selects the best combination of fps and format width.
             
 
 
-            // AVCaptureDevice *device = [self.videoCaptureDeviceInput device];
-            // AVCaptureDeviceFormat *activeFormat = device.activeFormat;
-            // CMFormatDescriptionRef activeDescription = activeFormat.formatDescription;
-            // CMVideoDimensions activeDimensions = CMVideoFormatDescriptionGetDimensions(activeDescription);
-
-            // NSInteger fps = [options[@"fps"] integerValue];
-            // CGFloat desiredFPS = (CGFloat)fps;
-
-            // AVCaptureDeviceFormat *selectedFormat = nil;
-            // int32_t activeWidth = activeDimensions.width;
-            // int32_t maxWidth = 0;
-
-            // for (AVCaptureDeviceFormat *format in [device formats]) {
-            //     CMFormatDescriptionRef formatDescription = format.formatDescription;
-            //     CMVideoDimensions formatDimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
-            //     int32_t formatWidth = formatDimensions.width;
-            //     if (formatWidth != activeWidth || formatWidth < maxWidth) {
-            //         continue;
-            //     }
-
-            //     for (AVFrameRateRange *range in format.videoSupportedFrameRateRanges) {
-            //         if (range.minFrameRate <= desiredFPS && desiredFPS <= range.maxFrameRate) {
-            //             selectedFormat = format;
-            //             maxWidth = formatWidth;
-            //         }
-            //     }
-            // }
-
-            // if (selectedFormat) {
-            //     if ([device lockForConfiguration:nil]) {
-            //         device.activeFormat = selectedFormat;
-            //         device.activeVideoMinFrameDuration = CMTimeMake(1, (int32_t)desiredFPS);
-            //         device.activeVideoMaxFrameDuration = CMTimeMake(1, (int32_t)desiredFPS);
-            //         [device unlockForConfiguration];
-            //     }
-            // } else {
-            //     RCTLog(@"We could not find a suitable format for this device.");
-            // }
             AVCaptureDevice *device = [self.videoCaptureDeviceInput device];
-            AVCaptureDeviceFormat *bestFormat;
-            AVFrameRateRange *bestFrameRateRange;
+            AVCaptureDeviceFormat *activeFormat = device.activeFormat;
+            CMFormatDescriptionRef activeDescription = activeFormat.formatDescription;
+            CMVideoDimensions activeDimensions = CMVideoFormatDescriptionGetDimensions(activeDescription);
+
+            NSInteger fps = [options[@"fps"] integerValue];
+            CGFloat desiredFPS = (CGFloat)fps;
+
+            AVCaptureDeviceFormat *selectedFormat = nil;
+            int32_t activeWidth = activeDimensions.width;
+            int32_t maxWidth = 0;
 
             for (AVCaptureDeviceFormat *format in [device formats]) {
+                CMFormatDescriptionRef formatDescription = format.formatDescription;
+                CMVideoDimensions formatDimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
+                int32_t formatWidth = formatDimensions.width;
+                if (formatWidth != activeWidth || formatWidth < maxWidth) {
+                    continue;
+                }
+
                 for (AVFrameRateRange *range in format.videoSupportedFrameRateRanges) {
-                    if (range.maxFrameRate > bestFrameRateRange.maxFrameRate) {
-                        bestFormat = format;
-                        NSLog(@"format:%f %f",range.minFrameRate, range.maxFrameRate);
-                        
-                        bestFrameRateRange = range;
+                    if (range.minFrameRate <= desiredFPS && desiredFPS <= range.maxFrameRate) {
+                        selectedFormat = format;
+                        maxWidth = formatWidth;
                     }
                 }
             }
-            if (bestFormat){
+
+            if(!selectedFormat)
+            {
+                AVFrameRateRange *bestFrameRateRange;
+                for (AVCaptureDeviceFormat *format in [device formats]) {
+                    CMFormatDescriptionRef formatDescription = format.formatDescription;
+                    CMVideoDimensions formatDimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
+                    int32_t formatWidth = formatDimensions.width;
+
+                    CMFormatDescriptionRef selectedFormatDescription = selectedFormat.formatDescription;
+                    CMVideoDimensions selectedFormatDimensions = CMVideoFormatDescriptionGetDimensions(selectedFormatDescription);
+                    int32_t selectedFormatWidth = selectedFormatDimensions.width;
+
+                    for (AVFrameRateRange *range in format.videoSupportedFrameRateRanges) {
+                        if ((range.maxFrameRate > bestFrameRateRange.maxFrameRate || range.maxFrameRate > desiredFPS)  && formatWidth>=selectedFormatWidth) {
+                            selectedFormat = format;
+                            NSLog(@"format:%f %f",range.minFrameRate, range.maxFrameRate);
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (selectedFormat) {
                 if ([device lockForConfiguration:nil]) {
-                    device.activeFormat = bestFormat;
-                    device.activeVideoMinFrameDuration = bestFrameRateRange.minFrameDuration;               
-                    device.activeVideoMaxFrameDuration = bestFrameRateRange.minFrameDuration;
+                    device.activeFormat = selectedFormat;
+                    device.activeVideoMinFrameDuration = CMTimeMake(1, (int32_t)desiredFPS);
+                    device.activeVideoMaxFrameDuration = CMTimeMake(1, (int32_t)desiredFPS);
                     [device unlockForConfiguration];
                 }
             } else {
                 RCTLog(@"We could not find a suitable format for this device.");
             }
+
+            
         }
 
         if (options[@"codec"]) {
