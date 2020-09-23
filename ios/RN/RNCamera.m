@@ -1151,6 +1151,7 @@ BOOL _sessionInterrupted = NO;
                     for (AVFrameRateRange *range in format.videoSupportedFrameRateRanges) {
                         if ((range.maxFrameRate > bestFrameRateRange.maxFrameRate || range.maxFrameRate > desiredFPS)  && formatWidth>=selectedFormatWidth) {
                             selectedFormat = format;
+                            bestFrameRateRange = range;
                             NSLog(@"format:%f %f",range.minFrameRate, range.maxFrameRate);
 
                             break;
