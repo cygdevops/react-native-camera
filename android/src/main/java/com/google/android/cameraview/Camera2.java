@@ -40,7 +40,6 @@ import android.media.MediaRecorder;
 import android.media.MediaActionSound;
 import androidx.annotation.NonNull;
 import android.util.Log;
-import android.util.Range;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.os.Handler;
@@ -91,7 +90,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
 
     private static final int FOCUS_METERING_AREA_WEIGHT_DEFAULT = 1000;
 
-    protected final CameraManager mCameraManager;
+    private final CameraManager mCameraManager;
 
     private final CameraDevice.StateCallback mCameraDeviceCallback
             = new CameraDevice.StateCallback() {
@@ -121,7 +120,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
 
     };
 
-    protected final CameraCaptureSession.StateCallback mSessionCallback
+    private final CameraCaptureSession.StateCallback mSessionCallback
             = new CameraCaptureSession.StateCallback() {
 
         @Override
@@ -211,7 +210,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
     private String mCameraId;
     private String _mCameraId;
 
-    protected CameraCharacteristics mCameraCharacteristics;
+    private CameraCharacteristics mCameraCharacteristics;
 
     CameraDevice mCamera;
 
@@ -229,11 +228,11 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
 
     private int mImageFormat;
 
-    protected MediaRecorder mMediaRecorder;
+    private MediaRecorder mMediaRecorder;
 
-    protected String mVideoPath;
+    private String mVideoPath;
 
-    protected boolean mIsRecording;
+    private boolean mIsRecording;
 
     private final SizeMap mPreviewSizes = new SizeMap();
 
@@ -379,13 +378,10 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
 
     @Override
     public ArrayList<int[]> getSupportedPreviewFpsRange() {
-        //Log.e("CAMERA_2:: ", "getSupportedPreviewFpsRange is not currently supported for Camera2");
-        Range<Integer>[] values = mCameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+        Log.e("CAMERA_2:: ", "getSupportedPreviewFpsRange is not currently supported for Camera2");
         ArrayList<int[]> validValues = new ArrayList<int[]>();
-        for(int i=0;i<values.length;i++)
-            validValues.add(new int[]{values[i].getLower(),values[i].getUpper()});
         return validValues;
-}
+    }
 
     @Override
     void setCameraId(String id) {
@@ -611,22 +607,6 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
         return false;
     }
 
-    private Range<Integer> getHighestFpsRange() {
-        Range<Integer>[] fpsRanges = mCameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);;
-        Range fpsRange = Range.create(fpsRanges[0].getLower(), fpsRanges[0].getUpper());
-        for (int i=0;i<fpsRanges.length;i++) {
-            if ((int)fpsRanges[i].getUpper() > (int)fpsRange.getUpper()) {
-                fpsRange = fpsRange.extend(fpsRange.getLower(), fpsRanges[i].getUpper());
-            }
-        }
-
-        for (int i=0;i<fpsRanges.length;i++) {
-            if (fpsRanges[i].getUpper() == fpsRange.getUpper() && (int)fpsRange.getLower() < (int)fpsRange.getLower()) {
-                fpsRange = fpsRange.extend(fpsRanges[i].getLower(), fpsRange.getUpper());
-            }
-        }
-        return fpsRange;
-    }
     @Override
     void stopRecording() {
         if (mIsRecording) {
@@ -1034,7 +1014,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
      *
      * @return The picked size for camera preview.
      */
-    protected Size chooseOptimalSize() {
+    private Size chooseOptimalSize() {
         int surfaceLonger, surfaceShorter;
         final int surfaceWidth = mPreview.getWidth();
         final int surfaceHeight = mPreview.getHeight();
@@ -1389,7 +1369,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
                 orientationDegrees == Constants.LANDSCAPE_270);
     }
 
-    protected void setUpMediaRecorder(String path, int maxDuration, int maxFileSize, boolean recordAudio, CamcorderProfile profile) {
+    private void setUpMediaRecorder(String path, int maxDuration, int maxFileSize, boolean recordAudio, CamcorderProfile profile) {
         mMediaRecorder = new MediaRecorder();
 
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
