@@ -1163,8 +1163,14 @@ BOOL _sessionInterrupted = NO;
             if (selectedFormat) {
                 if ([device lockForConfiguration:nil]) {
                     device.activeFormat = selectedFormat;
-                    device.activeVideoMinFrameDuration = CMTimeMake(1, (int32_t)desiredFPS);
-                    device.activeVideoMaxFrameDuration = CMTimeMake(1, (int32_t)desiredFPS);
+                    if(bestFrameRateRange){
+                        device.activeVideoMinFrameDuration = CMTimeMake(1, (int32_t)bestFrameRateRange.maxFrameRate);
+                        device.activeVideoMaxFrameDuration = CMTimeMake(1, (int32_t)bestFrameRateRange.maxFrameRate);
+                    }
+                    else{
+                        device.activeVideoMinFrameDuration = CMTimeMake(1, (int32_t)desiredFPS);
+                        device.activeVideoMaxFrameDuration = CMTimeMake(1, (int32_t)desiredFPS);
+                    }
                     [device unlockForConfiguration];
                 }
             } else {
