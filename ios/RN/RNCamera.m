@@ -1135,10 +1135,10 @@ BOOL _sessionInterrupted = NO;
                     }
                 }
             }
-
+            AVFrameRateRange *bestFrameRateRange;
             if(!selectedFormat)
             {
-                AVFrameRateRange *bestFrameRateRange;
+               
                 for (AVCaptureDeviceFormat *format in [device formats]) {
                     CMFormatDescriptionRef formatDescription = format.formatDescription;
                     CMVideoDimensions formatDimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
