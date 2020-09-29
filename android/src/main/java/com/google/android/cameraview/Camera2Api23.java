@@ -114,8 +114,7 @@ class Camera2Api23 extends Camera2 {
                 mPreviewRequestBuilder = mCamera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
                 mPreviewRequestBuilder.addTarget(surface);
                 mPreviewRequestBuilder.addTarget(mMediaRecorderSurface);
-                HandlerThread thread = new HandlerThread("CameraPreview");
-                thread.start();
+
                 mCamera.createConstrainedHighSpeedCaptureSession(Arrays.asList(surface, mMediaRecorderSurface),
                         mSessionCallback, null);
                 mMediaRecorder.start();
