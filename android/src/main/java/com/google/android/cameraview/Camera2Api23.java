@@ -30,6 +30,7 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Log;
 import android.util.Range;
 import android.view.Surface;
@@ -189,12 +190,7 @@ class Camera2Api23 extends Camera2 {
                 return;
             }
             mCaptureSession = session;
-            mInitialCropRegion = mPreviewRequestBuilder.get(CaptureRequest.SCALER_CROP_REGION);
-            updateAutoFocus();
-            updateFlash();
-            updateFocusDepth();
-            updateWhiteBalance();
-            updateZoom();
+
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
 
@@ -204,16 +200,17 @@ class Camera2Api23 extends Camera2 {
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
                     List<CaptureRequest> mPreviewBuilderBurst = null;
 
-                        mPreviewBuilderBurst = ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).createHighSpeedRequestList(mPreviewRequestBuilder.build());
-                        ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, mCaptureCallback, null);
+                    mPreviewBuilderBurst = ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).createHighSpeedRequestList(mPreviewRequestBuilder.build());
+                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, mCaptureCallback, null);
 
                 } else {
-                        ((CameraConstrainedHighSpeedCaptureSession)session).setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, null);
+                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, null);
 
                 }
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
+
         }
 
         @Override
