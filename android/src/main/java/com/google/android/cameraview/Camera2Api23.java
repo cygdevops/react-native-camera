@@ -191,16 +191,15 @@ class Camera2Api23 extends Camera2 {
             }
             mCaptureSession = session;
 
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+           // mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
+            //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
 
             try {
                 if (mIsRecording) {
                     Range<Integer> fpsRange = Range.create(selectedFpsRanges.getUpper(), selectedFpsRanges.getUpper());
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
-                    List<CaptureRequest> mPreviewBuilderBurst = null;
 
-                    mPreviewBuilderBurst = ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).createHighSpeedRequestList(mPreviewRequestBuilder.build());
+                    List<CaptureRequest>  mPreviewBuilderBurst = ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).createHighSpeedRequestList(mPreviewRequestBuilder.build());
                     ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, mCaptureCallback, null);
 
                 } else {
