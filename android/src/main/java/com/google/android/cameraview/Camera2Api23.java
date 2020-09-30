@@ -200,7 +200,7 @@ class Camera2Api23 extends Camera2 {
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
 
                     List<CaptureRequest>  mPreviewBuilderBurst = ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).createHighSpeedRequestList(mPreviewRequestBuilder.build());
-                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, mCaptureCallback, null);
+                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, null, mBgHandler);
 
                 } else {
                     ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, null);
