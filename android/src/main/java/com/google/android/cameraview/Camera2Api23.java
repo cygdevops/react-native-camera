@@ -172,7 +172,7 @@ class Camera2Api23 extends Camera2 {
         mMediaRecorder.setVideoFrameRate(selectedFpsRanges.getUpper());
         mMediaRecorder.setVideoSize(selectedSize.getWidth(), selectedSize.getHeight());
         mMediaRecorder.setVideoEncodingBitRate(profile.videoBitRate);
-     //   mMediaRecorder.setCaptureRate(selectedFpsRanges.getLower());
+        mMediaRecorder.setCaptureRate(30);
         //mMediaRecorder.setVideoEncodingBitRate(20000000);
         mMediaRecorder.setVideoEncoder(profile.videoCodec);
         if (recordAudio) {
