@@ -102,7 +102,7 @@ class Camera2Api23 extends Camera2 {
             setUpMediaRecorder(path, maxDuration, maxFileSize, recordAudio, profile);
             try {
                 mMediaRecorder.prepare();
-
+                Thread.sleep(500);
                 if (mCaptureSession != null) {
                     mCaptureSession.close();
                     mCaptureSession = null;
@@ -129,6 +129,8 @@ class Camera2Api23 extends Camera2 {
             } catch (CameraAccessException | IOException e) {
                 e.printStackTrace();
                 return false;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
         return false;
@@ -169,8 +171,8 @@ class Camera2Api23 extends Camera2 {
         mMediaRecorder.setOutputFormat(profile.fileFormat);
         mMediaRecorder.setVideoFrameRate(selectedFpsRanges.getUpper());
         mMediaRecorder.setVideoSize(selectedSize.getWidth(), selectedSize.getHeight());
-        mMediaRecorder.setVideoEncodingBitRate(getVideoBitRate());
-        mMediaRecorder.setCaptureRate(selectedFpsRanges.getLower());
+        mMediaRecorder.setVideoEncodingBitRate(profile.videoBitRate);
+     //   mMediaRecorder.setCaptureRate(selectedFpsRanges.getLower());
         //mMediaRecorder.setVideoEncodingBitRate(20000000);
         mMediaRecorder.setVideoEncoder(profile.videoCodec);
         if (recordAudio) {
@@ -193,19 +195,19 @@ class Camera2Api23 extends Camera2 {
 
            // mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
             //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE,
+                    CaptureRequest.CONTROL_MODE_USE_SCENE_MODE);
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_SCENE_MODE,
+                    CaptureRequest.CONTROL_SCENE_MODE_HIGH_SPEED_VIDEO);
             try {
-                if (mIsRecording) {
+
                     Range<Integer> fpsRange = Range.create(selectedFpsRanges.getUpper(), selectedFpsRanges.getUpper());
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
 
                     List<CaptureRequest>  mPreviewBuilderBurst = ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).createHighSpeedRequestList(mPreviewRequestBuilder.build());
-                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, null, mBgHandler);
+                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, null, null);
 
-                } else {
-                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, null);
 
-                }
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }

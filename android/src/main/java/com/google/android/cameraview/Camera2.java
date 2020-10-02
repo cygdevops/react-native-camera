@@ -1014,7 +1014,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
      *
      * @return The picked size for camera preview.
      */
-    private Size chooseOptimalSize() {
+    protected Size chooseOptimalSize() {
         int surfaceLonger, surfaceShorter;
         final int surfaceWidth = mPreview.getWidth();
         final int surfaceHeight = mPreview.getHeight();
@@ -1491,6 +1491,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
      * Called when an error occurs while recording.
      */
     public void onError(MediaRecorder mr, int what, int extra) {
+        Log.e(TAG,"mediarecorder error:" + Integer.toString(what) + " extra" + Integer.toString(extra));
         stopRecording();
     }
 
