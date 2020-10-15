@@ -210,7 +210,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
     protected String mCameraId;
     private String _mCameraId;
 
-    private CameraCharacteristics mCameraCharacteristics;
+    protected CameraCharacteristics mCameraCharacteristics;
 
     CameraDevice mCamera;
 
@@ -234,15 +234,15 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
 
     protected boolean mIsRecording;
 
-    private final SizeMap mPreviewSizes = new SizeMap();
+    protected final SizeMap mPreviewSizes = new SizeMap();
 
-    private final SizeMap mPictureSizes = new SizeMap();
+    protected final SizeMap mPictureSizes = new SizeMap();
 
-    private Size mPictureSize;
+    protected Size mPictureSize;
 
     private int mFacing;
 
-    private AspectRatio mAspectRatio = Constants.DEFAULT_ASPECT_RATIO;
+    protected AspectRatio mAspectRatio = Constants.DEFAULT_ASPECT_RATIO;
 
     private AspectRatio mInitialRatio;
 
@@ -252,7 +252,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
 
     private float mExposure;
 
-    private int mCameraOrientation;
+    protected int mCameraOrientation;
 
     private int mDisplayOrientation;
 
@@ -864,7 +864,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
      * <p>This rewrites {@link #mPreviewSizes}, {@link #mPictureSizes},
      * {@link #mCameraOrientation}, and optionally, {@link #mAspectRatio}.</p>
      */
-    private void collectCameraInfo() {
+    protected void collectCameraInfo() {
         StreamConfigurationMap map = mCameraCharacteristics.get(
                 CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
         if (map == null) {
@@ -1014,7 +1014,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
      *
      * @return The picked size for camera preview.
      */
-    protected Size chooseOptimalSize() {
+    private Size chooseOptimalSize() {
         int surfaceLonger, surfaceShorter;
         final int surfaceWidth = mPreview.getWidth();
         final int surfaceHeight = mPreview.getHeight();
@@ -1491,7 +1491,6 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
      * Called when an error occurs while recording.
      */
     public void onError(MediaRecorder mr, int what, int extra) {
-        Log.e(TAG,"mediarecorder error:" + Integer.toString(what) + " extra" + Integer.toString(extra));
         stopRecording();
     }
 

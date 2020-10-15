@@ -99,10 +99,16 @@ class Camera2Api23 extends Camera2 {
                     }
                 }
             }
-            setUpMediaRecorder(path, maxDuration, maxFileSize, recordAudio, profile);
+
             try {
+                setUpMediaRecorder(path, maxDuration, maxFileSize, recordAudio, profile);
+               /* mMediaRecorder = new MediaRecorder();
+                mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                mMediaRecorder.setOutputFile(path);*/
                 mMediaRecorder.prepare();
-                Thread.sleep(500);
+
                 if (mCaptureSession != null) {
                     mCaptureSession.close();
                     mCaptureSession = null;
@@ -129,8 +135,6 @@ class Camera2Api23 extends Camera2 {
             } catch (CameraAccessException | IOException e) {
                 e.printStackTrace();
                 return false;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
         return false;
@@ -168,11 +172,11 @@ class Camera2Api23 extends Camera2 {
     }
 
     private void setCamcorderProfile(CamcorderProfile profile, boolean recordAudio) {
-        mMediaRecorder.setOutputFormat(profile.fileFormat);
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mMediaRecorder.setVideoFrameRate(selectedFpsRanges.getUpper());
         mMediaRecorder.setVideoSize(selectedSize.getWidth(), selectedSize.getHeight());
-        mMediaRecorder.setVideoEncodingBitRate(profile.videoBitRate);
-        mMediaRecorder.setCaptureRate(30);
+        mMediaRecorder.setVideoEncodingBitRate(getVideoBitRate());
+        mMediaRecorder.setCaptureRate(selectedFpsRanges.getLower());
         //mMediaRecorder.setVideoEncodingBitRate(20000000);
         mMediaRecorder.setVideoEncoder(profile.videoCodec);
         if (recordAudio) {
@@ -195,19 +199,19 @@ class Camera2Api23 extends Camera2 {
 
            // mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
             //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE,
-                    CaptureRequest.CONTROL_MODE_USE_SCENE_MODE);
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_SCENE_MODE,
-                    CaptureRequest.CONTROL_SCENE_MODE_HIGH_SPEED_VIDEO);
-            try {
 
+            try {
+                if (mIsRecording) {
                     Range<Integer> fpsRange = Range.create(selectedFpsRanges.getUpper(), selectedFpsRanges.getUpper());
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
 
                     List<CaptureRequest>  mPreviewBuilderBurst = ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).createHighSpeedRequestList(mPreviewRequestBuilder.build());
-                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, null, null);
+                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingBurst(mPreviewBuilderBurst, mCaptureCallback, null);
 
+                } else {
+                    ((CameraConstrainedHighSpeedCaptureSession)mCaptureSession).setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, null);
 
+                }
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
@@ -240,8 +244,12 @@ class Camera2Api23 extends Camera2 {
         try{
             CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(mCameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            android.util.Size[] videoSizes = map.getHighSpeedVideoSizes(); // this range intends available fps range of device's camera.
-            return videoSizes;
+            ArrayList<android.util.Size> videoSizes = new ArrayList<android.util.Size>();// this range intends available fps range of device's camera.
+            for (android.util.Size size :  map.getHighSpeedVideoSizes()) {
+               if(size.getWidth()<=1280)
+                   videoSizes.add(size);
+            }
+            return videoSizes.toArray(new android.util.Size[0]);
         }
         catch (CameraAccessException e) {
             throw new RuntimeException("Failed to get a list of camera ids", e);
@@ -258,4 +266,35 @@ class Camera2Api23 extends Camera2 {
             throw new RuntimeException("Failed to get a list of camera ids", e);
         }
     }
+
+    @Override
+    public void collectCameraInfo() {
+        StreamConfigurationMap map = mCameraCharacteristics.get(
+                CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        if (map == null) {
+            throw new IllegalStateException("Failed to get configuration map: " + mCameraId);
+        }
+        mPreviewSizes.clear();
+        for (android.util.Size size : getHighSpeedVideoSizes()) {
+                mPreviewSizes.add(new Size(size.getWidth(), size.getHeight()));
+
+        }
+        mPictureSizes.clear();
+        collectPictureSizes(mPictureSizes, map);
+        if (mPictureSize == null) {
+            mPictureSize = mPictureSizes.sizes(mAspectRatio).last();
+        }
+        for (AspectRatio ratio : mPreviewSizes.ratios()) {
+            if (!mPictureSizes.ratios().contains(ratio)) {
+                mPreviewSizes.remove(ratio);
+            }
+        }
+
+        if (!mPreviewSizes.ratios().contains(mAspectRatio)) {
+            mAspectRatio = mPreviewSizes.ratios().iterator().next();
+        }
+
+        mCameraOrientation = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+    }
+
 }
